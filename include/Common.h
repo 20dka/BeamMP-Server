@@ -53,6 +53,9 @@ struct Version {
 template <typename T>
 using SparseArray = std::unordered_map<size_t, T>;
 
+template <typename K, typename V>
+using HashMap = std::unordered_map<K, V>;
+
 // static class handling application start, shutdown, etc.
 // yes, static classes, singletons, globals are all pretty
 // bad idioms. In this case we need a central way to access

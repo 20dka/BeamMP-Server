@@ -24,16 +24,13 @@ class TResourceManager {
 public:
     TResourceManager();
 
-    [[nodiscard]] size_t MaxModSize() const { return mMaxModSize; }
-    [[nodiscard]] std::string FileList() const { return mFileList; }
-    [[nodiscard]] std::string TrimmedList() const { return mTrimmedList; }
-    [[nodiscard]] std::string FileSizes() const { return mFileSizes; }
-    [[nodiscard]] int ModsLoaded() const { return mModsLoaded; }
+    [[nodiscard]] size_t TotalModsSize() const { return mTotalModSize; }
+    [[nodiscard]] HashMap<std::string, size_t> FileList() const { return mMods; }
+    [[nodiscard]] static std::string FormatForBackend(const HashMap<std::string, size_t>& mods);
+    [[nodiscard]] static std::string FormatForClient(const HashMap<std::string, size_t>& mods);
+    [[nodiscard]] int LoadedModCount() const { return mMods.size(); }
 
 private:
-    size_t mMaxModSize = 0;
-    std::string mFileSizes;
-    std::string mFileList;
-    std::string mTrimmedList;
-    int mModsLoaded = 0;
+    size_t mTotalModSize = 0; //size of all mods
+    HashMap<std::string, size_t> mMods; //vector of mod names
 };

@@ -23,31 +23,38 @@
 
 namespace fs = std::filesystem;
 
+std::string TResourceManager::FormatForBackend(const HashMap<std::string, size_t>& mods) {
+    std::string monkey;
+    for (const auto& [name, size] : mods) {
+        monkey += name + ';';
+    }
+    return monkey;
+}
+std::string TResourceManager::FormatForClient(const HashMap<std::string, size_t>& mods) {
+    std::string monkey = FormatForBackend(mods);
+    for (const auto& [name, size] : mods) {
+        monkey += std::to_string(size) + ';';
+    }
+    beammp_infof("hihi {}", monkey);
+    return monkey;
+}
+
 TResourceManager::TResourceManager() {
     Application::SetSubsystemStatus("ResourceManager", Application::Status::Starting);
-    std::string Path = Application::Settings.getAsString(Settings::Key::General_ResourceFolder) + "/Client";
-    if (!fs::exists(Path))
-        fs::create_directories(Path);
-    for (const auto& entry : fs::directory_iterator(Path)) {
-        std::string File(entry.path().string());
-        if (auto pos = File.find(".zip"); pos != std::string::npos) {
-            if (File.length() - pos == 4) {
-                std::replace(File.begin(), File.end(), '\\', '/');
-                mFileList += File + ';';
-                if (auto i = File.find_last_of('/'); i != std::string::npos) {
-                    ++i;
-                    File = File.substr(i, pos - i);
-                }
-                mTrimmedList += "/" + fs::path(File).filename().string() + ';';
-                mFileSizes += std::to_string(size_t(fs::file_size(entry.path()))) + ';';
-                mMaxModSize += size_t(fs::file_size(entry.path()));
-                mModsLoaded++;
-            }
+    std::string basePath = Application::Settings.getAsString(Settings::Key::General_ResourceFolder) + "/Client";
+    if (!fs::exists(basePath))
+        fs::create_directories(basePath);
+    std::vector<std::string> modNames;
+    for (const auto& entry : fs::directory_iterator(basePath)) {
+        std::string path(entry.path().string());
+        if (entry.path().extension() == ".zip") {
+            mMods[entry.path().filename()] = entry.file_size();
+            mTotalModSize += entry.file_size();
         }
     }
 
-    if (mModsLoaded) {
-        beammp_info("Loaded " + std::to_string(mModsLoaded) + " Mods");
+    if (!mMods.empty()) {
+        beammp_infof("Loaded {} mod{}", mMods.size(), mMods.size()!=1 ? 's' : ' ' );
     }
 
     Application::SetSubsystemStatus("ResourceManager", Application::Status::Good);

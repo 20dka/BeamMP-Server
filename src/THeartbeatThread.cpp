@@ -150,9 +150,9 @@ std::string THeartbeatThread::GenerateCall() {
         << "&name=" << Application::Settings.getAsString(Settings::Key::General_Name)
         << "&tags=" << Application::Settings.getAsString(Settings::Key::General_Tags)
         << "&guests=" << (Application::Settings.getAsBool(Settings::Key::General_AllowGuests) ? "true" : "false")
-        << "&modlist=" << mResourceManager.TrimmedList()
-        << "&modstotalsize=" << mResourceManager.MaxModSize()
-        << "&modstotal=" << mResourceManager.ModsLoaded()
+        << "&modlist=" << TResourceManager::FormatForBackend(mResourceManager.FileList())
+        << "&modstotalsize=" << mResourceManager.TotalModsSize()
+        << "&modstotal=" << mResourceManager.LoadedModCount()
         << "&playerslist=" << GetPlayers()
         << "&desc=" << Application::Settings.getAsString(Settings::Key::General_Description);
     return Ret.str();
