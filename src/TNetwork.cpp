@@ -298,6 +298,7 @@ std::shared_ptr<TClient> TNetwork::Authentication(TConnection&& RawConnection) {
     }
 
     beammp_debug("Name -> " + Client->GetName() + ", Guest -> " + std::to_string(Client->IsGuest()) + ", Roles -> " + Client->GetRoles());
+
     mServer.ForEachClient([&](const std::weak_ptr<TClient>& ClientPtr) -> bool {
         std::shared_ptr<TClient> Cl;
         {
@@ -315,6 +316,11 @@ std::shared_ptr<TClient> TNetwork::Authentication(TConnection&& RawConnection) {
         return true;
     });
 
+    Client->SetID(OpenID());
+    beammp_info("Assigned ID " + std::to_string(Client->GetID()) + " to " + Client->GetName());
+
+    mServer.InsertClient(Client);
+
     auto Futures = LuaAPI::MP::Engine->TriggerEvent("onPlayerAuth", "", Client->GetName(), Client->GetRoles(), Client->IsGuest(), Client->GetIdentifiers());
     TLuaEngine::WaitForAll(Futures);
     bool NotAllowed = std::any_of(Futures.begin(), Futures.end(),
@@ -331,22 +337,25 @@ std::shared_ptr<TClient> TNetwork::Authentication(TConnection&& RawConnection) {
             return false;
         });
 
-    if (NotAllowed) {
-        ClientKick(*Client, "you are not allowed on the server!");
-        return {};
-    } else if (NotAllowedWithReason) {
-        ClientKick(*Client, Reason);
-        return {};
+    bool fitsOnServer = mServer.ClientCount() < size_t(Application::GetSettingInt(StrMaxPlayers)); // || luaplayercountbypass;
+
+    if (!NotAllowed && !NotAllowedWithReason && fitsOnServer) {
+        beammp_info("Identification success");
+        TCPClient(Client);
+        return Client;
     }
 
-    if (mServer.ClientCount() < size_t(Application::GetSettingInt(StrMaxPlayers))) {
-        beammp_info("Identification success");
-        mServer.InsertClient(Client);
-        TCPClient(Client);
+    mServer.RemoveClient(Client);
+
+    if (NotAllowed) {
+        ClientKick(*Client, "You are not allowed on the server!");
+    } else if (NotAllowedWithReason) {
+        ClientKick(*Client, Reason);
     } else {
         ClientKick(*Client, "Server full!");
     }
-    return Client;
+
+    return {};
 }
 
 std::shared_ptr<TClient> TNetwork::CreateClient(ip::tcp::socket&& TCPSock) {
@@ -601,8 +610,6 @@ void TNetwork::OnConnect(const std::weak_ptr<TClient>& c) {
     beammp_assert(!c.expired());
     beammp_info("Client connected");
     auto LockedClient = c.lock();
-    LockedClient->SetID(OpenID());
-    beammp_info("Assigned ID " + std::to_string(LockedClient->GetID()) + " to " + LockedClient->GetName());
     LuaAPI::MP::Engine->ReportErrors(LuaAPI::MP::Engine->TriggerEvent("onPlayerConnecting", "", LockedClient->GetID()));
     SyncResources(*LockedClient);
     if (LockedClient->IsDisconnected())
