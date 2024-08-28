@@ -10,6 +10,7 @@
 #include "BoostAliases.h"
 #include "Common.h"
 #include "Compat.h"
+#include "TResourceManager.h"
 #include "VehicleData.h"
 
 class TServer;
@@ -101,8 +102,9 @@ public:
     // bytes sent on TCP
     std::atomic_size_t TcpSent = 0;
 
-    TimeType::time_point ConnectionTime{};
+    TimeType::time_point ConnectionTime {};
 
+    ModMap AllowedMods;
 
 private:
     void InsertVehicle(int ID, const std::string& Data);

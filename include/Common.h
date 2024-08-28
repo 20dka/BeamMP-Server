@@ -72,6 +72,9 @@ struct Version {
 template <typename T>
 using SparseArray = std::unordered_map<size_t, T>;
 
+template <typename K, typename V>
+using HashMap = std::unordered_map<K, V>;
+
 using boost::variant;
 using boost::container::flat_map;
 
