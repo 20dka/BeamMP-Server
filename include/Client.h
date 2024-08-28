@@ -28,6 +28,7 @@
 #include "BoostAliases.h"
 #include "Common.h"
 #include "Compat.h"
+#include "TResourceManager.h"
 #include "VehicleData.h"
 
 class TServer;
@@ -105,6 +106,7 @@ public:
     void UpdatePingTime();
     int SecondsSinceLastPing();
 
+    ModMap AllowedMods;
 private:
     void InsertVehicle(int ID, const std::string& Data);
 

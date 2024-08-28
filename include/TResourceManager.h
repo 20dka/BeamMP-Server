@@ -19,18 +19,22 @@
 #pragma once
 
 #include "Common.h"
+#include <optional>
+
+using ModMap = HashMap<std::string, size_t>;
 
 class TResourceManager {
 public:
     TResourceManager();
 
     [[nodiscard]] size_t TotalModsSize() const { return mTotalModSize; }
-    [[nodiscard]] HashMap<std::string, size_t> FileList() const { return mMods; }
-    [[nodiscard]] static std::string FormatForBackend(const HashMap<std::string, size_t>& mods);
-    [[nodiscard]] static std::string FormatForClient(const HashMap<std::string, size_t>& mods);
+    [[nodiscard]] ModMap FileMap() const { return mMods; }
+    [[nodiscard]] static std::string FormatForBackend(const ModMap& mods);
+    [[nodiscard]] static std::string FormatForClient(const ModMap& mods);
+    [[nodiscard]] static std::optional<std::string> IsModValid(std::string& pathString, const ModMap& mods);
     [[nodiscard]] int LoadedModCount() const { return mMods.size(); }
 
 private:
-    size_t mTotalModSize = 0; //size of all mods
-    HashMap<std::string, size_t> mMods; //vector of mod names
+    size_t mTotalModSize = 0; // size of all mods
+    ModMap mMods; // vector of mod names
 };
